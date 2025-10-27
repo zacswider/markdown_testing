@@ -13,6 +13,8 @@ This is the hostname of the mail server that actually sends your emails. It's pr
 
 The server listens on specific ports (usually 587 or 465) and handles the actual delivery of your emails to recipients.
 
+**Important:** These SMTP servers run on the email provider's machines (like Gmail's servers), not your local machine. Your application connects to these remote servers via TCP sockets and uses the SMTP protocol to submit emails for delivery.
+
 ### **SMTP Authentication User**
 This is the username/identity used to log into the SMTP server. It's almost always your email address.
 
@@ -46,6 +48,7 @@ TLS (Transport Layer Security) encrypts the connection between your application 
 - **How it works:** Connection starts unencrypted, then upgrades to encryption after authentication ("STARTTLS")
 - **Port:** 587 (standard)
 - **When to use:** Modern providers (Gmail, SendGrid, etc.)
+- **Protocol complexity:** More than just "sending requests to a URL" - involves TCP socket connections, SMTP protocol handshakes, authentication commands, and TLS negotiation
 
 ### **Enable SSL Encryption**
 SSL (Secure Sockets Layer) is the predecessor to TLS, but the terms are often used interchangeably now.
@@ -54,9 +57,12 @@ SSL (Secure Sockets Layer) is the predecessor to TLS, but the terms are often us
 - **How it works:** Connection is encrypted from the start (before authentication)
 - **Port:** 465 (standard)
 - **When to use:** Older servers, or providers that specifically require it
+- **Protocol complexity:** Also involves multi-step SMTP protocol communication, not simple HTTP requests
 
 ### **SMTP Port**
 The network port where the SMTP server listens. Different ports indicate different security protocols:
+
+**Why you need the port:** The hostname (like `smtp.gmail.com`) gets you to the server, but the port tells it which service/protocol you want to use. Without specifying the port, your app wouldn't know where to connect on the server.
 
 | Port | Protocol | Use Case |
 |------|----------|----------|
@@ -65,6 +71,18 @@ The network port where the SMTP server listens. Different ports indicate differe
 | **465** | SSL | Older but still used by some providers |
 
 ---
+
+## How SMTP Actually Works
+
+Unlike simple HTTP requests, SMTP involves:
+
+1. **TCP socket connection** to the SMTP server (not HTTP)
+2. **Multi-step protocol handshake** with SMTP commands
+3. **Authentication** using your credentials
+4. **Message formatting** per RFC standards
+5. **TLS/SSL negotiation** for encryption
+
+Your application code handles the high-level logic, but libraries like `emails` manage the complex SMTP protocol communication under the hood.
 
 ## What Mailcatcher Does
 
